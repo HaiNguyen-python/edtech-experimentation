@@ -1,0 +1,39 @@
+# Metric catalog. Every metric an experiment can use is defined once here.
+# type: mean  -> per-user value averaged over users (Welch t-test, CUPED if a covariate is given)
+# type: ratio -> sum(numerator) / sum(denominator) over users (delta-method variance)
+# direction: which way is good for the product.
+# guardrail_threshold: largest relative harm we accept on a guardrail (0.10 = 10% worse).
+metrics:
+  - name: lessons_completed_per_week
+    description: Lessons completed per week in the user's analysis window.
+    type: mean
+    column: lessons_completed_per_week
+    covariate: pre_lessons_completed_per_week
+    direction: increase
+
+  - name: completion_rate
+    description: Lessons completed divided by lessons started (pooled over users).
+    type: ratio
+    numerator: lessons_completed
+    denominator: lessons_started
+    direction: increase
+
+  - name: active_days
+    description: Distinct days with at least one completed lesson in the window.
+    type: mean
+    column: active_days
+    direction: increase
+
+  - name: unsubscribe_rate
+    description: Share of users who turned off notifications in the window.
+    type: mean
+    column: unsubscribed
+    direction: decrease
+    guardrail_threshold: 0.10
+
+  - name: crash_rate
+    description: Share of users with at least one app crash in the window.
+    type: mean
+    column: crashed
+    direction: decrease
+    guardrail_threshold: 0.10

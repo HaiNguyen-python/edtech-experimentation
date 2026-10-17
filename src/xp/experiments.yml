@@ -1,0 +1,93 @@
+# Layers give mutual exclusion: inside a layer every user lands in exactly one bucket
+# (0..999), and each experiment owns a disjoint bucket range. Different layers use
+# different salts, so they are independent of each other.
+layers:
+  - name: notifications
+    salt: layer-notifications-v1
+  - name: onboarding
+    salt: layer-onboarding-v1
+  - name: home
+    salt: layer-home-v1
+
+experiments:
+  - name: practice_reminder
+    title: Daily practice reminder
+    hypothesis: A push reminder at the learner's usual study time increases lessons completed.
+    layer: notifications
+    salt: practice-reminder-2026-03
+    buckets: [0, 1000]
+    variants: {control: 0.5, treatment: 0.5}
+    start: "2026-03-02"
+    ramp_days: 7
+    window_days: 14
+    primary: lessons_completed_per_week
+    secondary: [completion_rate, active_days]
+    guardrails: [unsubscribe_rate, crash_rate]
+    planned_mde: 0.03
+    analysis: fixed
+
+  - name: aa_check
+    title: A/A test (same app in both arms)
+    hypothesis: No difference. Checks that assignment, logging and statistics are healthy.
+    layer: home
+    salt: aa-check-2026-04
+    buckets: [0, 200]
+    variants: {control: 0.5, treatment: 0.5}
+    start: "2026-04-13"
+    ramp_days: 7
+    window_days: 14
+    primary: lessons_completed_per_week
+    secondary: [completion_rate, active_days]
+    guardrails: [unsubscribe_rate, crash_rate]
+    planned_mde: 0.08
+    analysis: fixed
+    aa: true
+
+  - name: streak_badge
+    title: Streak badge on the home screen
+    hypothesis: Showing the learner's streak increases lessons completed.
+    layer: home
+    salt: streak-badge-2026-04
+    buckets: [200, 600]
+    variants: {control: 0.5, treatment: 0.5}
+    start: "2026-04-13"
+    ramp_days: 7
+    window_days: 14
+    primary: lessons_completed_per_week
+    secondary: [completion_rate, active_days]
+    guardrails: [unsubscribe_rate, crash_rate]
+    planned_mde: 0.05
+    analysis: fixed
+
+  - name: home_redesign
+    title: Redesigned home screen (monitored daily)
+    hypothesis: A cleaner home screen increases lessons completed.
+    layer: home
+    salt: home-redesign-2026-04
+    buckets: [600, 1000]
+    variants: {control: 0.5, treatment: 0.5}
+    start: "2026-04-13"
+    ramp_days: 28
+    window_days: 7
+    primary: lessons_completed_per_week
+    secondary: [completion_rate, active_days]
+    guardrails: [unsubscribe_rate, crash_rate]
+    planned_mde: 0.05
+    analysis: sequential
+
+  - name: new_onboarding
+    title: New onboarding flow for new sign-ups
+    hypothesis: A shorter onboarding with a placement quiz increases lessons completed.
+    layer: onboarding
+    salt: new-onboarding-2026-04
+    buckets: [0, 1000]
+    variants: {control: 0.5, treatment: 0.5}
+    start: "2026-04-06"
+    ramp_days: 21
+    window_days: 14
+    primary: lessons_completed_per_week
+    secondary: [completion_rate, active_days]
+    guardrails: [unsubscribe_rate, crash_rate]
+    planned_mde: 0.05
+    analysis: fixed
+    new_users: true
