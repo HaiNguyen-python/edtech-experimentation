@@ -1,0 +1,29 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: Lint
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: Type check
+        run: mypy src
+      - name: Tests (synthetic data generated inside the tests, DuckDB in-process)
+        run: pytest --cov-fail-under=80
+      - name: Smoke test the CLI on a small synthetic dataset
+        run: |
+          xp generate --scale 0.1 --out /tmp/xp-data
+          xp analyze practice_reminder --data /tmp/xp-data --out /tmp/xp-reports
